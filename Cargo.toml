@@ -1,6 +1,6 @@
 [package]
 name = "cdylib-link-lines"
-version = "0.1.0"
+version = "0.1.1"
 description = "Collection of link-lines useful to build correct cdylibs on targets"
 authors = ["Luca Barbato <lu_zero@gentoo.org>"]
 repository = "https://github.com/lu-zero/cdylib-link-lines"
@@ -9,3 +9,6 @@ license = "MIT"
 readme = "README.md"
 
 [dependencies]
+serde = "1.0.79"
+serde_derive = "1.0.79"
+toml = "0.5"

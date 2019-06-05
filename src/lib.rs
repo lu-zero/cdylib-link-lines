@@ -1,5 +1,32 @@
 use std::env;
+use std::fs::File;
+use std::io::Read;
 use std::path::PathBuf;
+
+use serde_derive::Deserialize;
+use toml;
+
+#[derive(Deserialize)]
+pub struct Manifest {
+    pub package: Package,
+}
+
+#[derive(Deserialize)]
+pub struct Package {
+    pub name: String,
+}
+
+fn get_name() -> String {
+    let mut s = String::new();
+    let manifest_dir: PathBuf = env::var_os("CARGO_MANIFEST_DIR").unwrap().into();
+    let path = manifest_dir.join("Cargo.toml");
+
+    File::open(path).unwrap().read_to_string(&mut s).unwrap();
+
+    let manifest: Manifest = toml::from_str(&s).unwrap();
+
+    manifest.package.name
+}
 
 pub fn metabuild() {
     let arch = env::var("CARGO_CFG_TARGET_ARCH").unwrap();
@@ -26,37 +53,48 @@ pub fn metabuild() {
         |v| v.into(),
     );
 
-    shared_object_link_line(&arch, &os, &env, &major, &minor, &micro, libdir, target_dir);
+    let name = get_name();
+
+    let lines = shared_object_link_args(
+        &name, &major, &minor, &micro, &arch, &os, &env, libdir, target_dir,
+    );
+    let link = "cargo:rustc-cdylib-link-arg=";
+
+    for line in lines {
+        println!("{}{}", link, line);
+    }
 }
 
-fn shared_object_link_line(
-    _arch: &str,
-    os: &str,
-    env: &str,
+/// Return a list of linker arguments useful to produce a platform-correct dynamic library
+pub fn shared_object_link_args(
+    name: &str,
     major: &str,
     minor: &str,
     micro: &str,
+    _arch: &str,
+    os: &str,
+    env: &str,
     libdir: PathBuf,
     target_dir: PathBuf,
-) {
-    let link = "cargo:rustc-cdylib-link-arg=";
-
+) -> Vec<String> {
+    let mut lines = Vec::new();
     if os == "linux" {
-        println!("{}-Wl,-soname,librav1e.so.{}", link, major);
+        lines.push(format!("-Wl,-soname,lib{}.so.{}", name, major));
     } else if os == "macos" {
-        println!("{0}-Wl,-install_name,{1}/librav1e.{2}.{3}.{4}.dylib,-current_version,{2}.{3}.{4},-compatibility_version,{2}",
-                link, libdir.display(), major, minor, micro);
+        let line = format!("-Wl,-install_name,{1}/lib{0}.{2}.{3}.{4}.dylib,-current_version,{2}.{3}.{4},-compatibility_version,{2}",
+                name, libdir.display(), major, minor, micro);
+        lines.push(line)
     } else if os == "windows" && env == "gnu" {
         // This is only set up to work on GNU toolchain versions of Rust
-        println!(
-            "{}-Wl,--out-implib,{}",
-            link,
-            target_dir.join("rav1e.dll.a").display()
-        );
-        println!(
-            "{}-Wl,--output-def,{}",
-            link,
-            target_dir.join("rav1e.def").display()
-        );
+        lines.push(format!(
+            "-Wl,--out-implib,{}",
+            target_dir.join(format!("{}.dll.a", name)).display()
+        ));
+        lines.push(format!(
+            "-Wl,--output-def,{}",
+            target_dir.join(format!("{}.def", name)).display()
+        ));
     }
+
+    lines
 }
