@@ -9,6 +9,12 @@ use toml;
 #[derive(Deserialize)]
 pub struct Manifest {
     pub package: Package,
+    pub lib: Option<OptPackage>,
+}
+
+#[derive(Deserialize)]
+pub struct OptPackage {
+    pub name: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -25,7 +31,10 @@ fn get_name() -> String {
 
     let manifest: Manifest = toml::from_str(&s).unwrap();
 
-    manifest.package.name
+    manifest
+        .lib
+        .and_then(|it| it.name)
+        .unwrap_or(manifest.package.name)
 }
 
 pub fn metabuild() {
