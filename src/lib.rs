@@ -87,22 +87,40 @@ pub fn shared_object_link_args(
     target_dir: PathBuf,
 ) -> Vec<String> {
     let mut lines = Vec::new();
-    if os == "linux" {
-        lines.push(format!("-Wl,-soname,lib{}.so.{}", name, major));
-    } else if os == "macos" {
-        let line = format!("-Wl,-install_name,{1}/lib{0}.{2}.{3}.{4}.dylib,-current_version,{2}.{3}.{4},-compatibility_version,{2}",
-                name, libdir.display(), major, minor, micro);
-        lines.push(line)
-    } else if os == "windows" && env == "gnu" {
-        // This is only set up to work on GNU toolchain versions of Rust
-        lines.push(format!(
-            "-Wl,--out-implib,{}",
-            target_dir.join(format!("{}.dll.a", name)).display()
-        ));
-        lines.push(format!(
-            "-Wl,--output-def,{}",
-            target_dir.join(format!("{}.def", name)).display()
-        ));
+
+    match (os, env) {
+        ("android", _) => {
+            lines.push(format!("-Wl,-soname,lib{}.so", name));
+        }
+
+        ("linux" | "freebsd" | "dragonfly" | "netbsd", env) if env != "musl" => {
+            lines.push(format!("-Wl,-soname,lib{}.so.{}", name, major));
+        }
+
+        ("macos" | "ios", _) => {
+            lines.push(format!(
+                "-Wl,-install_name,{1}/lib{0}.{2}.{3}.{4}.dylib,-current_version,{2}.{3}.{4},-compatibility_version,{2}",
+                name,
+                libdir.display(),
+                major,
+                minor,
+                micro
+            ));
+        }
+
+        ("windows", "gnu") => {
+            // This is only set up to work on GNU toolchain versions of Rust
+            lines.push(format!(
+                "-Wl,--out-implib,{}",
+                target_dir.join(format!("{}.dll.a", name)).display()
+            ));
+            lines.push(format!(
+                "-Wl,--output-def,{}",
+                target_dir.join(format!("{}.def", name)).display()
+            ));
+        }
+
+        _ => {}
     }
 
     lines
