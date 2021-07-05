@@ -1,6 +1,6 @@
 # link-line helper to build correct cdylibs
 
-[![LICENSE](https://img.shields.io/badge/license-BSD2-blue.svg)](LICENSE)
+[![LICENSE](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 ## Supported targets
 
