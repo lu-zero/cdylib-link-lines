@@ -4,8 +4,8 @@
 
 ## Supported targets
 
-- Linux
-- macOS
+- Linux and Android
+- macOS and iOS
 - Windows (gnu)
 
 ## Usage
@@ -43,3 +43,4 @@ cdylib-link-lines = "0.1"
 ## Credits
 
 Helper spun off [crav1e](https://github.com/lu-zero/crav1e), contains code written by Luca Barbato and Derek Buitenhuis.
+Synchronized with the [cargo-c](https://github.com/lu-zero/cargo-c) 0.9 logic thanks to Ivan Enderlin.
