@@ -45,41 +45,40 @@ pub fn metabuild() {
     // We do not care about `_pre` and such.
     let major = env::var("CARGO_PKG_VERSION_MAJOR").unwrap();
     let minor = env::var("CARGO_PKG_VERSION_MINOR").unwrap();
-    let micro = env::var("CARGO_PKG_VERSION_PATCH").unwrap();
+    let patch = env::var("CARGO_PKG_VERSION_PATCH").unwrap();
 
-    let prefix: PathBuf = env::var_os("CARGO_C_PREFIX")
-        .unwrap_or("/usr/local".into())
-        .into();
-    let libdir = env::var_os("CARGO_C_LIBDIR").map_or(prefix.join("lib"), |v| v.into());
+    // Give the priority to [`cargo-c`](https://github.com/lu-zero/cargo-c) in case of.
+    let prefix = PathBuf::from(env::var_os("CARGO_C_PREFIX").unwrap_or("/usr/local".into()));
+    let libdir = env::var_os("CARGO_C_LIBDIR").map_or(prefix.join("lib"), Into::into);
 
     let target_dir = env::var_os("CARGO_TARGET_DIR").map_or(
         {
-            let manifest_dir: PathBuf = env::var_os("CARGO_MANIFEST_DIR").unwrap().into();
+            let manifest_dir = PathBuf::from(env::var_os("CARGO_MANIFEST_DIR").unwrap());
             manifest_dir
                 .join("target")
                 .join(std::env::var("PROFILE").unwrap())
         },
-        |v| v.into(),
+        Into::into,
     );
 
     let name = get_name();
 
     let lines = shared_object_link_args(
-        &name, &major, &minor, &micro, &arch, &os, &env, libdir, target_dir,
+        &name, &major, &minor, &patch, &arch, &os, &env, libdir, target_dir,
     );
-    let link = "cargo:rustc-cdylib-link-arg=";
 
     for line in lines {
-        println!("{}{}", link, line);
+        println!("cargo:rustc-cdylib-link-arg={}", line);
     }
 }
 
-/// Return a list of linker arguments useful to produce a platform-correct dynamic library
+/// Return a list of linker arguments useful to produce a
+/// platform-correct dynamic library.
 pub fn shared_object_link_args(
     name: &str,
     major: &str,
     minor: &str,
-    micro: &str,
+    patch: &str,
     _arch: &str,
     os: &str,
     env: &str,
@@ -104,7 +103,7 @@ pub fn shared_object_link_args(
                 libdir.display(),
                 major,
                 minor,
-                micro
+                patch,
             ));
         }
 
