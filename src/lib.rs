@@ -93,11 +93,11 @@ pub fn shared_object_link_args(
             lines.push(format!("-Wl,-soname,lib{}.so", name));
         }
 
-        ("linux" | "freebsd" | "dragonfly" | "netbsd", env) if env != "musl" => {
+        ("linux", _) | ("freebsd", _) | ("dragonfly", _) | ("netbsd", _) if env != "musl" => {
             lines.push(format!("-Wl,-soname,lib{}.so.{}", name, major));
         }
 
-        ("macos" | "ios", _) => {
+        ("macos", _) | ("ios", _) => {
             lines.push(format!(
                 "-Wl,-install_name,{1}/lib{0}.{2}.{3}.{4}.dylib,-current_version,{2}.{3}.{4},-compatibility_version,{2}",
                 name,
