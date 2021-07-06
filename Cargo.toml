@@ -1,6 +1,6 @@
 [package]
 name = "cdylib-link-lines"
-version = "0.1.3"
+version = "0.1.4"
 description = "Collection of link-lines useful to build correct cdylibs on targets"
 authors = ["Luca Barbato <lu_zero@gentoo.org>"]
 repository = "https://github.com/lu-zero/cdylib-link-lines"
