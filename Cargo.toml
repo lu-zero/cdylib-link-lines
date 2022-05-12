@@ -7,8 +7,3 @@ repository = "https://github.com/lu-zero/cdylib-link-lines"
 edition = "2018"
 license = "MIT"
 readme = "README.md"
-
-[dependencies]
-serde = "1.0.79"
-serde_derive = "1.0.79"
-toml = "0.5"
