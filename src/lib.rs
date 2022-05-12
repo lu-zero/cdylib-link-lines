@@ -1,41 +1,5 @@
 use std::env;
-use std::fs::File;
-use std::io::Read;
 use std::path::PathBuf;
-
-use serde_derive::Deserialize;
-use toml;
-
-#[derive(Deserialize)]
-pub struct Manifest {
-    pub package: Package,
-    pub lib: Option<OptPackage>,
-}
-
-#[derive(Deserialize)]
-pub struct OptPackage {
-    pub name: Option<String>,
-}
-
-#[derive(Deserialize)]
-pub struct Package {
-    pub name: String,
-}
-
-fn get_name() -> String {
-    let mut s = String::new();
-    let manifest_dir: PathBuf = env::var_os("CARGO_MANIFEST_DIR").unwrap().into();
-    let path = manifest_dir.join("Cargo.toml");
-
-    File::open(path).unwrap().read_to_string(&mut s).unwrap();
-
-    let manifest: Manifest = toml::from_str(&s).unwrap();
-
-    manifest
-        .lib
-        .and_then(|it| it.name)
-        .unwrap_or(manifest.package.name)
-}
 
 pub fn metabuild() {
     let arch = env::var("CARGO_CFG_TARGET_ARCH").unwrap();
@@ -61,7 +25,8 @@ pub fn metabuild() {
         Into::into,
     );
 
-    let name = get_name();
+    let name = env::var_os("CARGO_PKG_NAME").unwrap();
+    let name = name.to_str().expect("pkg name is not valid UTF-8");
 
     let lines = shared_object_link_args(
         &name, &major, &minor, &patch, &arch, &os, &env, libdir, target_dir,
