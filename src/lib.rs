@@ -57,7 +57,7 @@ pub fn shared_object_link_args(
             lines.push(format!("-Wl,-soname,lib{}.so", name));
         }
 
-        ("linux", _) | ("freebsd", _) | ("dragonfly", _) | ("netbsd", _) if env != "musl" => {
+        ("linux", _) | ("freebsd", _) | ("dragonfly", _) | ("netbsd", _) => {
             lines.push(format!("-Wl,-soname,lib{}.so.{}", name, major));
         }
 
